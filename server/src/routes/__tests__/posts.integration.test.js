@@ -58,3 +58,24 @@ test("registering with a duplicate email fails end to end (US-01 extension 3a, v
   expect(secondAttempt.status).toBe(400);
   expect(secondAttempt.body.error.code).toBe("EMAIL_ALREADY_REGISTERED");
 });
+
+test("registration and login work together", async () => {
+  const credentials = {
+    email: "alice@example.com",
+    displayName: "Alice",
+    password: "correcthorse",
+  };
+
+  const registerRes = await request(app)
+    .post("/api/auth/register")
+    .send(credentials);
+
+  expect(registerRes.status).toBe(201);
+
+  const loginRes = await request(app)
+    .post("/api/auth/login")
+    .send({ email: credentials.email, password: credentials.password });
+
+  expect(loginRes.status).toBe(200);
+  expect(loginRes.body.accessToken).toBeDefined();
+});
