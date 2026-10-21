@@ -5,11 +5,7 @@ const router = Router();
 router.post("/auth/register", async (req, res) => {
   try {
     const result = await AuthService.register(req.body);
-    res.status(201).json({
-      id: result.id,
-      email: result.email,
-      displayName: result.displayName,
-    });
+    res.status(201).json(result);
   } catch (err) {
     if (err instanceof EmailAlreadyRegisteredError) {
       return res.status(400).json({ error: { code: "EMAIL_ALREADY_REGISTERED", message: "This email is already registered." } });

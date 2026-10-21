@@ -1,12 +1,15 @@
 // server/src/repositories/post.repository.js
+
 import { prisma } from "../db/client.js";
+
 export const PostRepository = {
   create({ authorId, title, body, status, publishedAt }) {
     return prisma.post.create({
       data: { authorId, title, body, status, publishedAt },
     });
   },
-  createWithTags({ authorId, title, body, tagNames, status, publishedAt }) {
+
+  createWithTags({ authorId, title, body, status, publishedAt, tagNames }) {
     return prisma.post.create({
       data: {
         authorId,
@@ -16,18 +19,14 @@ export const PostRepository = {
         publishedAt,
         tags: {
           create: tagNames.map((name) => ({
-            tag: {
-              connectOrCreate: {
-                where: { name },
-                create: { name },
-              },
-            },
+            tag: { connectOrCreate: { where: { name }, create: { name } } },
           })),
         },
       },
       include: { tags: { include: { tag: true } } },
     });
   },
+
   async findPublished({ page, pageSize }) {
     const rows = await prisma.post.findMany({
       where: { status: "PUBLISHED" },
@@ -38,6 +37,7 @@ export const PostRepository = {
     const hasMore = rows.length > pageSize;
     return { posts: rows.slice(0, pageSize), hasMore };
   },
+
   async searchPublished({ query, page, pageSize }) {
     const where = {
       status: "PUBLISHED",
