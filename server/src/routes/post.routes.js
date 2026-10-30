@@ -3,6 +3,7 @@ import { PostService } from "../services/post.service.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 
 const router = Router();
+const MAX_PAGE_SIZE = 100;
 
 router.post("/posts", requireAuth, async (req, res, next) => {
   try {
@@ -20,10 +21,22 @@ router.post("/posts", requireAuth, async (req, res, next) => {
 
 router.get("/posts", async (req, res, next) => {
   try {
-    const { page = 1, search } = req.query;
+    const { page = 1, pageSize = 10, search } = req.query;
+    const numericPageSize = Number(pageSize);
+
+    // Prevent oversized feed requests from exhausting server resources.
+    if (numericPageSize > MAX_PAGE_SIZE) {
+      return res.status(400).json({
+        error: {
+          code: "PAGE_SIZE_TOO_LARGE",
+          message: `pageSize must be ${MAX_PAGE_SIZE} or less.`,
+        },
+      });
+    }
+
     const result = search
-      ? await PostService.search({ query: search, page: Number(page) })
-      : await PostService.listPublished({ page: Number(page) });
+      ? await PostService.search({ query: search, page: Number(page), pageSize: numericPageSize })
+      : await PostService.listPublished({ page: Number(page), pageSize: numericPageSize });
     res.status(200).json(result);
   } catch (err) {
     next(err);

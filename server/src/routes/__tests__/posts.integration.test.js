@@ -79,3 +79,10 @@ test("registration and login work together", async () => {
   expect(loginRes.status).toBe(200);
   expect(loginRes.body.accessToken).toBeDefined();
 });
+
+test("rejects an oversized pageSize", async () => {
+  const response = await request(app).get("/api/posts?pageSize=101");
+
+  expect(response.status).toBe(400);
+  expect(response.body.error.code).toBe("PAGE_SIZE_TOO_LARGE");
+});
